@@ -58,7 +58,7 @@ under the License.
         <module>paimon-common</module>
         <module>paimon-core</module>
         <module>paimon-flink</module>
-        <module>paimon-docs</module>
+<!--        <module>paimon-docs</module>-->
         <module>paimon-e2e-tests</module>
         <module>paimon-filesystems</module>
         <module>paimon-format</module>
@@ -66,8 +66,8 @@ under the License.
         <module>paimon-hive</module>
         <module>paimon-spark</module>
         <module>paimon-service</module>
-        <module>paimon-test-utils</module>
-        <module>tools/ci/paimon-ci-tools</module>
+<!--        <module>paimon-test-utils</module>-->
+<!--        <module>tools/ci/paimon-ci-tools</module>-->
     </modules>
 
     <properties>
