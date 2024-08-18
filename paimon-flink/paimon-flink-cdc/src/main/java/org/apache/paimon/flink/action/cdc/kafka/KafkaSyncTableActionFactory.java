@@ -18,6 +18,8 @@
 
 package org.apache.paimon.flink.action.cdc.kafka;
 
+import org.apache.paimon.flink.action.MultipleParameterToolAdapter;
+import org.apache.paimon.flink.action.cdc.SyncTableActionBase;
 import org.apache.paimon.flink.action.cdc.SyncTableActionFactoryBase;
 
 import static org.apache.paimon.flink.action.cdc.CdcActionCommonUtils.KAFKA_CONF;
@@ -26,6 +28,8 @@ import static org.apache.paimon.flink.action.cdc.CdcActionCommonUtils.KAFKA_CONF
 public class KafkaSyncTableActionFactory extends SyncTableActionFactoryBase {
 
     public static final String IDENTIFIER = "kafka_sync_table";
+
+    public static final String KAFKA_FILTER_CONF = "kafka_filter_conf";
 
     @Override
     public String identifier() {
@@ -120,5 +124,13 @@ public class KafkaSyncTableActionFactory extends SyncTableActionFactoryBase {
                         + "    --table_conf bucket=4 \\\n"
                         + "    --table_conf changelog-producer=input \\\n"
                         + "    --table_conf sink.parallelism=4");
+    }
+
+    @Override
+    protected void withParams(MultipleParameterToolAdapter params, SyncTableActionBase action) {
+        super.withParams(params, action);
+        if (params.has(KAFKA_FILTER_CONF)) {
+            action.withFilterConfig(optionalConfigMap(params, KAFKA_FILTER_CONF));
+        }
     }
 }

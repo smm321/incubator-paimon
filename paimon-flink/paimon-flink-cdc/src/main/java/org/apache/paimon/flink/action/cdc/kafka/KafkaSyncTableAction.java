@@ -18,13 +18,20 @@
 
 package org.apache.paimon.flink.action.cdc.kafka;
 
+import org.apache.paimon.catalog.Identifier;
 import org.apache.paimon.flink.action.cdc.MessageQueueSyncTableActionBase;
 import org.apache.paimon.flink.action.cdc.SyncJobHandler;
+import org.apache.paimon.schema.Schema;
+import org.apache.paimon.table.FileStoreTable;
 
+import java.io.Serializable;
 import java.util.Map;
 
+import static org.apache.paimon.flink.action.cdc.CdcActionCommonUtils.assertSchemaCompatible;
+import static org.apache.paimon.flink.action.cdc.ComputedColumnUtils.buildComputedColumns;
+
 /** Synchronize table from Kafka. */
-public class KafkaSyncTableAction extends MessageQueueSyncTableActionBase {
+public class KafkaSyncTableAction extends MessageQueueSyncTableActionBase implements Serializable {
 
     public KafkaSyncTableAction(
             String warehouse,
@@ -39,5 +46,16 @@ public class KafkaSyncTableAction extends MessageQueueSyncTableActionBase {
                 catalogConfig,
                 kafkaConfig,
                 SyncJobHandler.SourceType.KAFKA);
+    }
+
+    @Override
+    protected void beforeBuildingSourceSink() throws Exception {
+        Identifier identifier = new Identifier(database, table);
+        if (!catalog.tableExists(identifier)) {
+            throw new RuntimeException(String.format("paimon table %s %s not created yet", database, table));
+        } else {
+            fileStoreTable = (FileStoreTable) catalog.getTable(identifier);
+            fileStoreTable = alterTableOptions(identifier, fileStoreTable);
+        }
     }
 }

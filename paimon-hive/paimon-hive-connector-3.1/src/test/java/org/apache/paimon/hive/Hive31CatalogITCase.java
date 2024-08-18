@@ -28,7 +28,7 @@ import org.apache.flink.table.api.EnvironmentSettings;
 import org.apache.flink.table.api.TableException;
 import org.apache.flink.table.api.internal.TableEnvironmentImpl;
 import org.apache.flink.types.Row;
-import org.apache.hadoop.hive.ql.lockmgr.DbTxnManager;
+//import org.apache.hadoop.hive.ql.lockmgr.DbTxnManager;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -51,8 +51,8 @@ public class Hive31CatalogITCase extends HiveCatalogITCaseBase {
                 {
                     // catalog lock needs txn manager
                     // hive-3.x requires a proper txn manager to create ACID table
-                    getHiveConfSystemOverride()
-                            .put(HIVE_TXN_MANAGER.varname, DbTxnManager.class.getName());
+//                    getHiveConfSystemOverride()
+//                            .put(HIVE_TXN_MANAGER.varname, DbTxnManager.class.getName());
                     getHiveConfSystemOverride().put(HIVE_SUPPORT_CONCURRENCY.varname, "true");
                     // tell TxnHandler to prepare txn DB
                     getHiveConfSystemOverride().put(HIVE_IN_TEST.varname, "true");

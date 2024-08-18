@@ -39,6 +39,7 @@ import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamSource;
 import org.apache.flink.streaming.api.functions.source.SourceFunction;
 
+import java.io.Serializable;
 import java.time.Duration;
 import java.util.HashMap;
 import java.util.List;
@@ -55,18 +56,19 @@ import static org.apache.paimon.flink.FlinkConnectorOptions.SCAN_WATERMARK_IDLE_
 import static org.apache.paimon.flink.action.cdc.watermark.CdcTimestampExtractorFactory.createExtractor;
 
 /** Base {@link Action} for table/database synchronizing job. */
-public abstract class SynchronizationActionBase extends ActionBase {
+public abstract class SynchronizationActionBase extends ActionBase implements Serializable {
 
     private static final long DEFAULT_CHECKPOINT_INTERVAL = 3 * 60 * 1000;
 
     protected final String database;
     protected final Configuration cdcSourceConfig;
-    protected final SyncJobHandler syncJobHandler;
+    protected final transient SyncJobHandler syncJobHandler;
     protected final boolean caseSensitive;
 
     protected Map<String, String> tableConfig = new HashMap<>();
-    protected TypeMapping typeMapping = TypeMapping.defaultMapping();
-    protected CdcMetadataConverter[] metadataConverters = new CdcMetadataConverter[] {};
+    protected Map<String, String> filterConfig = new HashMap<>();
+    protected transient TypeMapping typeMapping = TypeMapping.defaultMapping();
+    protected transient CdcMetadataConverter[] metadataConverters = new CdcMetadataConverter[] {};
 
     public SynchronizationActionBase(
             String warehouse,
@@ -101,6 +103,11 @@ public abstract class SynchronizationActionBase extends ActionBase {
         return this;
     }
 
+    public SynchronizationActionBase withFilterConfig(Map<String, String> filterConfig) {
+        this.filterConfig = filterConfig;
+        return this;
+    }
+
     @VisibleForTesting
     public Map<String, String> tableConfig() {
         return tableConfig;
@@ -116,8 +123,11 @@ public abstract class SynchronizationActionBase extends ActionBase {
 
         beforeBuildingSourceSink();
 
-        DataStream<RichCdcMultiplexRecord> input =
-                buildDataStreamSource(buildSource()).flatMap(recordParse()).name("Parse");
+        DataStream<RichCdcMultiplexRecord> input = Objects.isNull(filterConfig) ? buildDataStreamSource(buildSource())
+                .flatMap(recordParse()).name("Parse") : buildDataStreamSource(buildSource())
+                        .filter(o -> o.getTopic()
+                                .equals(filterConfig.get("filter_db") + "." + filterConfig.get("filter_table")))
+                        .flatMap(recordParse()).name("Parse");
 
         EventParser.Factory<RichCdcMultiplexRecord> parserFactory = buildEventParserFactory();
 
