@@ -78,7 +78,7 @@ public class DebeziumRecordParser extends RecordParser {
     private static final String OP_DELETE = "d";
     private static final String OP_READE = "r";
 
-    private boolean hasSchema;
+    protected boolean hasSchema;
     private final Map<String, String> debeziumTypes = new HashMap<>();
     private final Map<String, String> classNames = new HashMap<>();
     private final Map<String, Map<String, String>> parameters = new HashMap<>();
@@ -213,6 +213,23 @@ public class DebeziumRecordParser extends RecordParser {
                             debeziumType, className, parameters.get(fieldName)));
         }
 
+        evalComputedColumns(resultMap, rowTypeBuilder);
+
+        return resultMap;
+    }
+
+    protected Map<String, String> extractRowDataWithoutSchema(
+            JsonNode record, RowType.Builder rowTypeBuilder) {
+        Map<String, Object> recordMap =
+                JsonSerdeUtil.convertValue(record, new TypeReference<Map<String, Object>>() {});
+        LinkedHashMap<String, String> resultMap = new LinkedHashMap<>();
+        for (Map.Entry<String, Object> entry : recordMap.entrySet()) {
+            String fieldName = entry.getKey();
+            String rawValue = Objects.toString(entry.getValue(), null);
+            String className = entry.getValue().getClass().getName();
+            resultMap.put(fieldName, rawValue);
+            rowTypeBuilder.field(fieldName, DebeziumSchemaUtils.toDataType(className));
+        }
         evalComputedColumns(resultMap, rowTypeBuilder);
 
         return resultMap;

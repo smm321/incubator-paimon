@@ -18,7 +18,6 @@
 
 package org.apache.paimon.flink.action;
 
-import org.apache.flink.configuration.Configuration;
 import org.apache.paimon.annotation.VisibleForTesting;
 import org.apache.paimon.catalog.Catalog;
 import org.apache.paimon.flink.FlinkCatalog;
@@ -29,6 +28,7 @@ import org.apache.paimon.options.Options;
 import org.apache.paimon.types.DataType;
 import org.apache.paimon.types.DataTypeCasts;
 
+import org.apache.flink.configuration.Configuration;
 import org.apache.flink.configuration.PipelineOptions;
 import org.apache.flink.configuration.ReadableConfig;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
@@ -52,9 +52,7 @@ public abstract class ActionBase implements Action {
     protected StreamExecutionEnvironment env;
     protected StreamTableEnvironment batchTEnv;
 
-    public ActionBase (){
-
-    }
+    public ActionBase() {}
 
     public ActionBase(String warehouse, Map<String, String> catalogConfig) {
         catalogOptions = Options.fromMap(catalogConfig);
@@ -65,7 +63,9 @@ public abstract class ActionBase implements Action {
 
         // use the default env if user doesn't pass one
         if ("y".equalsIgnoreCase(System.getProperty("local"))) {
-            initFlinkEnv(StreamExecutionEnvironment.createLocalEnvironmentWithWebUI(new Configuration()));
+            initFlinkEnv(
+                    StreamExecutionEnvironment.createLocalEnvironmentWithWebUI(
+                            new Configuration()));
         } else {
             initFlinkEnv(StreamExecutionEnvironment.getExecutionEnvironment());
         }

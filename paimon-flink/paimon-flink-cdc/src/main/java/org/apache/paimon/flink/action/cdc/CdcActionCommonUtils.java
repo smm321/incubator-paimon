@@ -66,7 +66,6 @@ public class CdcActionCommonUtils {
     public static final String COMPUTED_COLUMN = "computed_column";
     public static final String METADATA_COLUMN = "metadata_column";
 
-
     public static void assertSchemaCompatible(
             TableSchema paimonSchema, List<DataField> sourceTableFields) {
         if (!schemaCompatible(paimonSchema, sourceTableFields)) {

@@ -169,6 +169,34 @@ public class DebeziumSchemaUtils {
         return transformed;
     }
 
+    public static DataType toDataType(String javaType) {
+        if (Boolean.class.getName().equals(javaType)) {
+            return DataTypes.BOOLEAN();
+        }
+        if (Byte.class.getName().equals(javaType)) {
+            return DataTypes.BYTES();
+        }
+        if (Short.class.getName().equals(javaType) || Integer.class.getName().equals(javaType)) {
+            return DataTypes.INT();
+        }
+        if (Long.class.getName().equals(javaType)) {
+            return DataTypes.BIGINT();
+        }
+        if (Float.class.getName().equals(javaType) || Double.class.getName().equals(javaType)) {
+            return DataTypes.DOUBLE();
+        }
+        if (String.class.getName().equals(javaType)) {
+            return DataTypes.STRING();
+        }
+        if (BigDecimal.class.getName().equals(javaType)) {
+            return DataTypes.DECIMAL(26, 6);
+        }
+        if (java.sql.Timestamp.class.getName().equals(javaType)) {
+            return DataTypes.TIMESTAMP();
+        }
+        return DataTypes.STRING();
+    }
+
     public static DataType toDataType(
             String debeziumType, @Nullable String className, Map<String, String> parameters) {
         if (className == null) {

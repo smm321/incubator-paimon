@@ -18,13 +18,6 @@
 
 package org.apache.paimon.flink.action.cdc;
 
-import org.apache.flink.api.common.eventtime.WatermarkStrategy;
-import org.apache.flink.api.common.functions.FlatMapFunction;
-import org.apache.flink.api.connector.source.Source;
-import org.apache.flink.configuration.Configuration;
-import org.apache.flink.streaming.api.datastream.DataStream;
-import org.apache.flink.streaming.api.datastream.DataStreamSource;
-import org.apache.flink.streaming.api.functions.source.SourceFunction;
 import org.apache.paimon.CoreOptions;
 import org.apache.paimon.annotation.VisibleForTesting;
 import org.apache.paimon.catalog.Catalog;
@@ -38,6 +31,14 @@ import org.apache.paimon.flink.sink.cdc.RichCdcMultiplexRecord;
 import org.apache.paimon.options.Options;
 import org.apache.paimon.schema.SchemaChange;
 import org.apache.paimon.table.FileStoreTable;
+
+import org.apache.flink.api.common.eventtime.WatermarkStrategy;
+import org.apache.flink.api.common.functions.FlatMapFunction;
+import org.apache.flink.api.connector.source.Source;
+import org.apache.flink.configuration.Configuration;
+import org.apache.flink.streaming.api.datastream.DataStream;
+import org.apache.flink.streaming.api.datastream.DataStreamSource;
+import org.apache.flink.streaming.api.functions.source.SourceFunction;
 
 import java.time.Duration;
 import java.util.HashMap;
@@ -55,9 +56,9 @@ import static org.apache.paimon.flink.FlinkConnectorOptions.SCAN_WATERMARK_IDLE_
 import static org.apache.paimon.flink.action.cdc.watermark.CdcTimestampExtractorFactory.createExtractor;
 
 /** Base {@link Action} for table/database synchronizing job. */
-public abstract class SynchronizationActionBase extends ActionBase{
+public abstract class SynchronizationActionBase extends ActionBase {
 
-    private static final long DEFAULT_CHECKPOINT_INTERVAL = 3 * 60 * 1000;
+    private static final long DEFAULT_CHECKPOINT_INTERVAL = 60 * 1000;
 
     protected String database;
     protected transient Configuration cdcSourceConfig;
@@ -69,7 +70,7 @@ public abstract class SynchronizationActionBase extends ActionBase{
     protected transient TypeMapping typeMapping = TypeMapping.defaultMapping();
     protected transient CdcMetadataConverter[] metadataConverters = new CdcMetadataConverter[] {};
 
-    public SynchronizationActionBase (){
+    public SynchronizationActionBase() {
         super();
     }
 
@@ -125,10 +126,14 @@ public abstract class SynchronizationActionBase extends ActionBase{
 
         beforeBuildingSourceSink();
 
-        DataStream<RichCdcMultiplexRecord> input = filterConfig.size() == 0 ?
-                buildDataStreamSource(buildSource()).flatMap(recordParse()).name("Parse") :
-                buildDataStreamSource(buildSource()).flatMap(recordParse()).name("Parse")
-                        .filter(new CdcMessageFilterFunction(filterConfig)).name("Filter Table");
+        DataStream<RichCdcMultiplexRecord> input =
+                filterConfig.size() == 0
+                        ? buildDataStreamSource(buildSource()).flatMap(recordParse()).name("Parse")
+                        : buildDataStreamSource(buildSource())
+                                .flatMap(recordParse())
+                                .name("Parse")
+                                .filter(new CdcMessageFilterFunction(filterConfig))
+                                .name("Filter Table");
 
         EventParser.Factory<RichCdcMultiplexRecord> parserFactory = buildEventParserFactory();
 
