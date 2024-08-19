@@ -33,6 +33,10 @@ import static org.apache.paimon.flink.action.cdc.ComputedColumnUtils.buildComput
 /** Synchronize table from Kafka. */
 public class KafkaSyncTableAction extends MessageQueueSyncTableActionBase implements Serializable {
 
+    public KafkaSyncTableAction(){
+        super();
+    }
+
     public KafkaSyncTableAction(
             String warehouse,
             String database,

@@ -18,19 +18,6 @@
 
 package org.apache.paimon.flink.action.cdc;
 
-import org.apache.paimon.CoreOptions;
-import org.apache.paimon.annotation.VisibleForTesting;
-import org.apache.paimon.catalog.Catalog;
-import org.apache.paimon.catalog.Identifier;
-import org.apache.paimon.flink.action.Action;
-import org.apache.paimon.flink.action.ActionBase;
-import org.apache.paimon.flink.action.cdc.watermark.CdcWatermarkStrategy;
-import org.apache.paimon.flink.sink.cdc.EventParser;
-import org.apache.paimon.flink.sink.cdc.RichCdcMultiplexRecord;
-import org.apache.paimon.options.Options;
-import org.apache.paimon.schema.SchemaChange;
-import org.apache.paimon.table.FileStoreTable;
-
 import org.apache.flink.api.common.eventtime.WatermarkStrategy;
 import org.apache.flink.api.common.functions.FlatMapFunction;
 import org.apache.flink.api.connector.source.Source;
@@ -38,8 +25,20 @@ import org.apache.flink.configuration.Configuration;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamSource;
 import org.apache.flink.streaming.api.functions.source.SourceFunction;
+import org.apache.paimon.CoreOptions;
+import org.apache.paimon.annotation.VisibleForTesting;
+import org.apache.paimon.catalog.Catalog;
+import org.apache.paimon.catalog.Identifier;
+import org.apache.paimon.flink.action.Action;
+import org.apache.paimon.flink.action.ActionBase;
+import org.apache.paimon.flink.action.cdc.function.CdcMessageFilterFunction;
+import org.apache.paimon.flink.action.cdc.watermark.CdcWatermarkStrategy;
+import org.apache.paimon.flink.sink.cdc.EventParser;
+import org.apache.paimon.flink.sink.cdc.RichCdcMultiplexRecord;
+import org.apache.paimon.options.Options;
+import org.apache.paimon.schema.SchemaChange;
+import org.apache.paimon.table.FileStoreTable;
 
-import java.io.Serializable;
 import java.time.Duration;
 import java.util.HashMap;
 import java.util.List;
@@ -56,19 +55,23 @@ import static org.apache.paimon.flink.FlinkConnectorOptions.SCAN_WATERMARK_IDLE_
 import static org.apache.paimon.flink.action.cdc.watermark.CdcTimestampExtractorFactory.createExtractor;
 
 /** Base {@link Action} for table/database synchronizing job. */
-public abstract class SynchronizationActionBase extends ActionBase implements Serializable {
+public abstract class SynchronizationActionBase extends ActionBase{
 
     private static final long DEFAULT_CHECKPOINT_INTERVAL = 3 * 60 * 1000;
 
-    protected final String database;
-    protected final Configuration cdcSourceConfig;
-    protected final transient SyncJobHandler syncJobHandler;
-    protected final boolean caseSensitive;
+    protected String database;
+    protected transient Configuration cdcSourceConfig;
+    protected transient SyncJobHandler syncJobHandler;
+    protected boolean caseSensitive;
 
     protected Map<String, String> tableConfig = new HashMap<>();
     protected Map<String, String> filterConfig = new HashMap<>();
     protected transient TypeMapping typeMapping = TypeMapping.defaultMapping();
     protected transient CdcMetadataConverter[] metadataConverters = new CdcMetadataConverter[] {};
+
+    public SynchronizationActionBase (){
+        super();
+    }
 
     public SynchronizationActionBase(
             String warehouse,
@@ -81,7 +84,6 @@ public abstract class SynchronizationActionBase extends ActionBase implements Se
         this.cdcSourceConfig = Configuration.fromMap(cdcSourceConfig);
         this.syncJobHandler = syncJobHandler;
         this.caseSensitive = catalog.caseSensitive();
-
         this.syncJobHandler.registerJdbcDriver();
     }
 
@@ -123,11 +125,10 @@ public abstract class SynchronizationActionBase extends ActionBase implements Se
 
         beforeBuildingSourceSink();
 
-        DataStream<RichCdcMultiplexRecord> input = Objects.isNull(filterConfig) ? buildDataStreamSource(buildSource())
-                .flatMap(recordParse()).name("Parse") : buildDataStreamSource(buildSource())
-                        .filter(o -> o.getTopic()
-                                .equals(filterConfig.get("filter_db") + "." + filterConfig.get("filter_table")))
-                        .flatMap(recordParse()).name("Parse");
+        DataStream<RichCdcMultiplexRecord> input = filterConfig.size() == 0 ?
+                buildDataStreamSource(buildSource()).flatMap(recordParse()).name("Parse") :
+                buildDataStreamSource(buildSource()).flatMap(recordParse()).name("Parse")
+                        .filter(new CdcMessageFilterFunction(filterConfig)).name("Filter Table");
 
         EventParser.Factory<RichCdcMultiplexRecord> parserFactory = buildEventParserFactory();
 

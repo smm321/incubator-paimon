@@ -48,14 +48,16 @@ import static org.apache.paimon.utils.Preconditions.checkState;
 public abstract class SyncTableActionBase extends SynchronizationActionBase {
 
     private static final Logger LOG = LoggerFactory.getLogger(SyncTableActionBase.class);
-
-    protected final String table;
-
+    protected String table;
     protected FileStoreTable fileStoreTable;
     protected List<String> partitionKeys = new ArrayList<>();
     protected List<String> primaryKeys = new ArrayList<>();
     protected List<String> computedColumnArgs = new ArrayList<>();
     protected List<ComputedColumn> computedColumns = new ArrayList<>();
+
+    public SyncTableActionBase() {
+        super();
+    }
 
     public SyncTableActionBase(
             String warehouse,

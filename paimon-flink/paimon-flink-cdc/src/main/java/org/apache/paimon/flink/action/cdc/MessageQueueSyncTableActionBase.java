@@ -51,6 +51,10 @@ import java.util.Map;
  */
 public abstract class MessageQueueSyncTableActionBase extends SyncTableActionBase {
 
+    public MessageQueueSyncTableActionBase() {
+        super();
+    }
+
     public MessageQueueSyncTableActionBase(
             String warehouse,
             String database,
