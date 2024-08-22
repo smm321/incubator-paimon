@@ -27,6 +27,7 @@ import org.apache.paimon.shade.jackson2.com.fasterxml.jackson.databind.JsonNode;
 import java.util.List;
 import java.util.Map;
 
+/** BankDebeziumRecordParser to support schemaless row data. */
 public class BankDebeziumRecordParser extends DebeziumRecordParser {
     public BankDebeziumRecordParser(
             boolean caseSensitive, TypeMapping typeMapping, List<ComputedColumn> computedColumns) {

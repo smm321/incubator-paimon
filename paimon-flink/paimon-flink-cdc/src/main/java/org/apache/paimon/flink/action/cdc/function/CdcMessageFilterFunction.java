@@ -24,6 +24,7 @@ import org.apache.flink.api.common.functions.FilterFunction;
 
 import java.util.Map;
 
+/** Filter function for sharding db ingestion message. */
 public class CdcMessageFilterFunction implements FilterFunction<RichCdcMultiplexRecord> {
 
     private final Map<String, String> filter;
@@ -39,6 +40,8 @@ public class CdcMessageFilterFunction implements FilterFunction<RichCdcMultiplex
                     && richCdcMultiplexRecord
                             .databaseName()
                             .equalsIgnoreCase(filter.get("filter_db"));
-        } else return true;
+        } else {
+            return true;
+        }
     }
 }
