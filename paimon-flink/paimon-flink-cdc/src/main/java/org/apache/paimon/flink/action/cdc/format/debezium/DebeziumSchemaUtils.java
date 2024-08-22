@@ -183,13 +183,13 @@ public class DebeziumSchemaUtils {
             return DataTypes.BIGINT();
         }
         if (Float.class.getName().equals(javaType) || Double.class.getName().equals(javaType)) {
-            return DataTypes.DOUBLE();
+            return DataTypes.DECIMAL(36, 10);
         }
         if (String.class.getName().equals(javaType)) {
             return DataTypes.STRING();
         }
         if (BigDecimal.class.getName().equals(javaType)) {
-            return DataTypes.DECIMAL(26, 6);
+            return DataTypes.DECIMAL(36, 10);
         }
         if (java.sql.Timestamp.class.getName().equals(javaType)) {
             return DataTypes.TIMESTAMP();
