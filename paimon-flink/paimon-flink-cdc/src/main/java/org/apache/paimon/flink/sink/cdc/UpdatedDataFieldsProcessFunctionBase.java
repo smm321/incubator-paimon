@@ -185,6 +185,11 @@ public abstract class UpdatedDataFieldsProcessFunctionBase<I, O> extends Process
                     : ConvertAction.IGNORE;
         }
 
+        oldIdx = DECIMAL_TYPES.indexOf(oldType.getTypeRoot());
+        newIdx = INTEGER_TYPES.indexOf(newType.getTypeRoot());
+        if (oldIdx >= 0 && newIdx >= 0) {
+            return ConvertAction.IGNORE;
+        }
         return ConvertAction.EXCEPTION;
     }
 

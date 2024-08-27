@@ -48,7 +48,8 @@ public class RichEventParser implements EventParser<RichCdcRecord> {
                             // When the order of the same field is different, its ID may also be
                             // different,
                             // so the comparison should not include the ID.
-                            if (!dataFieldEqualsIgnoreId(previous, dataField)) {
+                            // todo process new columns
+                            if (!dataFieldEqualsIgnoreId(previous, dataField) && null != previous) {
                                 previousDataFields.put(dataField.name(), dataField);
                                 change.add(dataField);
                             }
