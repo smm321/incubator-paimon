@@ -287,17 +287,17 @@ under the License.
                             <goal>shade</goal>
                         </goals>
                         <configuration>
-                            <relocations>
-                                <!-- Same as flink-sql-connector-kafka. -->
-                                <relocation>
-                                    <pattern>org.apache.kafka.connect</pattern>
-                                    <shadedPattern>com.ververica.cdc.connectors.shaded.org.apache.kafka.connect</shadedPattern>
-                                </relocation>
-                                <relocation>
-                                    <pattern>org.apache.kafka</pattern>
-                                    <shadedPattern>org.apache.flink.kafka.shaded.org.apache.kafka</shadedPattern>
-                                </relocation>
-                            </relocations>
+<!--                            <relocations>-->
+<!--                                &lt;!&ndash; Same as flink-sql-connector-kafka. &ndash;&gt;-->
+<!--                                <relocation>-->
+<!--                                    <pattern>org.apache.kafka.connect</pattern>-->
+<!--                                    <shadedPattern>com.ververica.cdc.connectors.shaded.org.apache.kafka.connect</shadedPattern>-->
+<!--                                </relocation>-->
+<!--                                <relocation>-->
+<!--                                    <pattern>org.apache.kafka</pattern>-->
+<!--                                    <shadedPattern>org.apache.flink.kafka.shaded.org.apache.kafka</shadedPattern>-->
+<!--                                </relocation>-->
+<!--                            </relocations>-->
                         </configuration>
                     </execution>
                 </executions>
